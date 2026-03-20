@@ -66,7 +66,7 @@ public class WebSecurityConfig {
             if (userService.findByUsername("admin") == null) {
                 User admin = new User();
                 admin.setUsername("admin");
-                admin.setPassword(passwordEncoder().encode("admin"));
+                admin.setPassword("admin");
                 admin.setName("Admin");
                 admin.setSurname("Adminov");
                 admin.setAge(30);

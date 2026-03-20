@@ -5,25 +5,90 @@
     <title>Create User</title>
 </head>
 <body>
+
 <h2>Create New User</h2>
+
 <form th:action="@{/admin}" th:object="${user}" method="post">
-    <label>Username: <input type="text" th:field="*{username}"/></label><br/>
-    <label>Password: <input type="password" th:field="*{password}"/></label><br/>
-    <label>Name: <input type="text" th:field="*{name}"/></label><br/>
-    <label>Surname: <input type="text" th:field="*{surname}"/></label><br/>
-    <label>Email: <input type="email" th:field="*{email}"/></label><br/>
-    <label>Age: <input type="number" th:field="*{age}"/></label><br/>
 
-    <h4>Roles</h4>
-    <div th:each="role : ${rolesList}">
-        <label>
-            <input type="checkbox" name="rolesSelected"
-                   th:value="${role.name}"/> <span th:text="${role.name}"></span>
-        </label><br/>
-    </div>
+    <table>
+        <tr>
+            <td>Username:</td>
+            <td>
+                <input type="text" th:field="*{username}"/>
+                <div th:if="${#fields.hasErrors('username')}"
+                     th:errors="*{username}"></div>
+            </td>
+        </tr>
 
+        <tr>
+            <td>Password:</td>
+            <td>
+                <input type="password" th:field="*{password}"/>
+                <div th:if="${#fields.hasErrors('password')}"
+                     th:errors="*{password}"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Email:</td>
+            <td>
+                <input type="email" th:field="*{email}"/>
+                <div th:if="${#fields.hasErrors('email')}"
+                     th:errors="*{email}"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Name:</td>
+            <td>
+                <input type="text" th:field="*{name}"/>
+                <div th:if="${#fields.hasErrors('name')}"
+                     th:errors="*{name}"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Surname:</td>
+            <td>
+                <input type="text" th:field="*{surname}"/>
+                <div th:if="${#fields.hasErrors('surname')}"
+                     th:errors="*{surname}"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Age:</td>
+            <td>
+                <input type="number" th:field="*{age}"/>
+                <div th:if="${#fields.hasErrors('age')}"
+                     th:errors="*{age}"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Roles:</td>
+            <td>
+                <div th:each="role : ${rolesList}">
+                    <label>
+                        <input type="checkbox"
+                               name="rolesSelected"
+                               th:value="${role.name}"/>
+                        <span th:text="${role.name}"></span>
+                    </label><br/>
+                </div>
+
+                <div th:if="${#fields.hasErrors('roles')}"
+                     th:errors="*{roles}"></div>
+            </td>
+        </tr>
+    </table>
+
+    <br/>
     <button type="submit">Create</button>
 </form>
+
+<br/>
 <a th:href="@{/admin}">Back</a>
+
 </body>
 </html>

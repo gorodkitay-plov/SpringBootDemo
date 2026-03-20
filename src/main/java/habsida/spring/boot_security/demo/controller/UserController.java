@@ -40,20 +40,27 @@ public class UserController {
     @PostMapping
     public String create(@Valid @ModelAttribute("user") User user,
                          BindingResult bindingResult,
-                         @RequestParam(value = "rolesSelected", required = false) Set<String> rolesSelected) {
+                         @RequestParam(value = "rolesSelected", required = false) Set<String> rolesSelected,
+                         Model model) {
 
         if (userService.isUsernameTaken(user.getUsername())) {
             bindingResult.rejectValue("username","","Username уже существует");
         }
 
-        if (bindingResult.hasErrors()) return "newUser";
-
-        if (rolesSelected != null) {
-            Set<Role> roles = roleRepository.findAll().stream()
-                    .filter(r -> rolesSelected.contains(r.getName()))
-                    .collect(java.util.stream.Collectors.toSet());
-            user.setRoles(roles);
+        if (rolesSelected == null || rolesSelected.isEmpty()) {
+            bindingResult.rejectValue("roles", "", "Выберите хотя бы одну роль");
         }
+
+        if (bindingResult.hasErrors()){
+            model.addAttribute("rolesList", roleRepository.findAll());
+            return "newUser";
+        }
+
+        Set<Role> roles = roleRepository.findAll().stream()
+                .filter(r -> rolesSelected.contains(r.getName()))
+                .collect(java.util.stream.Collectors.toSet());
+
+        user.setRoles(roles);
 
         userService.saveUser(user);
         return "redirect:/admin";
@@ -70,20 +77,28 @@ public class UserController {
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute("user") User user,
                          BindingResult bindingResult,
-                         @RequestParam(value = "rolesSelected", required = false) Set<String> rolesSelected) {
+                         @RequestParam(value = "rolesSelected", required = false)
+                             Set<String> rolesSelected, Model model) {
 
         if (userService.isUsernameTakenForUpdate(user.getUsername(), id)) {
             bindingResult.rejectValue("username","","Username уже существует");
         }
 
-        if (bindingResult.hasErrors()) return "editUser";
-
-        if (rolesSelected != null) {
-            Set<Role> roles = roleRepository.findAll().stream()
-                    .filter(r -> rolesSelected.contains(r.getName()))
-                    .collect(java.util.stream.Collectors.toSet());
-            user.setRoles(roles);
+        if (rolesSelected == null || rolesSelected.isEmpty()) {
+            bindingResult.rejectValue("roles", "", "Выберите хотя бы одну роль");
         }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("rolesList", roleRepository.findAll());
+            return "editUser";
+
+        }
+
+        Set<Role> roles = roleRepository.findAll().stream()
+                .filter(r -> rolesSelected.contains(r.getName()))
+                .collect(java.util.stream.Collectors.toSet());
+
+        user.setRoles(roles);
 
         userService.updateUser(id, user);
         return "redirect:/admin";
