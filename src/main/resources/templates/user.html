@@ -4,30 +4,46 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>User Page</title>
+    <title>User Panel</title>
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .sidebar {
+            height: 100vh;
+            background-color: #fff;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .sidebar .nav-link {
+            display: block;
+            width: 100%;
+            color: #000;
+            padding: 12px 20px;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+    </style>
 </head>
 
 <body class="bg-light">
 
-<!-- TOP NAVBAR -->
+<!-- NAVBAR -->
 <nav class="navbar navbar-dark bg-dark px-3 d-flex justify-content-between">
 
-    <!-- ЛЕВАЯ ЧАСТЬ -->
     <span class="navbar-text text-white">
-        <b sec:authentication="name"></b>
-        with roles
+        <b sec:authentication="name"></b> with roles
         <span sec:authentication="authorities"></span>
     </span>
 
-    <!-- ПРАВАЯ ЧАСТЬ -->
-    <form th:action="@{/logout}" method="post" class="m-0">
+    <form th:action="@{/logout}" method="post">
         <input type="hidden"
                th:name="${_csrf.parameterName}"
                th:value="${_csrf.token}"/>
-        <button class="btn btn-link text-white p-0">Logout</button>
+        <button class="btn btn-link text-white">Logout</button>
     </form>
 
 </nav>
@@ -36,19 +52,19 @@
     <div class="row">
 
         <!-- SIDEBAR -->
-        <div class="col-2 bg-white border-end vh-100 pt-3">
+        <div class="col-2 sidebar p-0">
             <ul class="nav flex-column">
 
-                <!-- ADMIN видит -->
+                <!-- ADMIN -->
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/admin}">
                         Admin
                     </a>
                 </li>
 
-                <!-- USER видит -->
+                <!-- USER -->
                 <li class="nav-item">
-                    <a class="nav-link active bg-primary text-white" th:href="@{/user}">
+                    <a class="nav-link active" th:href="@{/user}">
                         User
                     </a>
                 </li>
@@ -56,50 +72,46 @@
             </ul>
         </div>
 
-        <!-- MAIN CONTENT -->
+        <!-- CONTENT -->
         <div class="col-10 p-4">
 
-            <h2>User information-page</h2>
+            <h2>User Panel</h2>
 
             <div class="card">
                 <div class="card-header">
-                    About user
+                    User information
                 </div>
 
                 <div class="card-body">
 
                     <table class="table table-striped">
+                        <thead>
                         <tr>
                             <th>ID</th>
-                            <td th:text="${user.id}"></td>
-                        </tr>
-                        <tr>
                             <th>Username</th>
-                            <td th:text="${user.username}"></td>
-                        </tr>
-                        <tr>
                             <th>Name</th>
-                            <td th:text="${user.name}"></td>
-                        </tr>
-                        <tr>
                             <th>Surname</th>
-                            <td th:text="${user.surname}"></td>
-                        </tr>
-                        <tr>
-                            <th>Email</th>
-                            <td th:text="${user.email}"></td>
-                        </tr>
-                        <tr>
                             <th>Age</th>
-                            <td th:text="${user.age}"></td>
-                        </tr>
-                        <tr>
+                            <th>Email</th>
                             <th>Roles</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr>
+                            <td th:text="${user.id}"></td>
+                            <td th:text="${user.username}"></td>
+                            <td th:text="${user.name}"></td>
+                            <td th:text="${user.surname}"></td>
+                            <td th:text="${user.age}"></td>
+                            <td th:text="${user.email}"></td>
+
                             <td>
                                 <span th:each="role : ${user.roles}"
                                       th:text="${role.name} + ' '"></span>
                             </td>
                         </tr>
+                        </tbody>
                     </table>
 
                 </div>

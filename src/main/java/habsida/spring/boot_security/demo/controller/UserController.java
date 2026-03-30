@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import habsida.spring.boot_security.demo.model.UserEditDto;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -77,7 +78,7 @@ public class UserController {
 
     @PatchMapping("/{id}")
     public String update(@PathVariable Long id,
-                         @ModelAttribute("user") User user,
+                         @Valid @ModelAttribute("user") User user,
                          @RequestParam(value = "rolesSelected", required = false)
                          Set<String> rolesSelected) {
 
@@ -104,96 +105,45 @@ public class UserController {
 
     @PatchMapping("/{id}/ajax")
     @ResponseBody
-    public Map<String, Object> updateAjax(@PathVariable Long id,
-                                          @RequestBody Map<String, Object> body) {
+    public Map<String, Object> updateUserAjax(@PathVariable Long id,
+                                              @Valid @RequestBody UserEditDto dto,
+                                              BindingResult bindingResult) {
 
         Map<String, Object> response = new HashMap<>();
-        Map<String, String> errors = new HashMap<>();
 
-        // получаем поля из JSON
-        String username = (String) body.get("username");
-        String name = (String) body.get("name");
-        String surname = (String) body.get("surname");
-        String email = (String) body.get("email");
-
-        Integer age = null;
-        try {
-            Object ageObj = body.get("age");
-            if (ageObj != null) {
-                age = Integer.valueOf(ageObj.toString());
-            }
-        } catch (NumberFormatException e) {
-            errors.put("age", "Возраст должен быть числом");
+        // Проверка на уникальность username
+        if(userService.isUsernameTakenForUpdate(dto.getUsername(), id)) {
+            bindingResult.rejectValue("username","","Username уже существует");
         }
 
-        List<String> rolesSelected = (List<String>) body.get("rolesSelected");
-
-        // Валидация
-        if (username == null || username.isBlank()) {
-            errors.put("username", "Username обязателен");
-        } else if (userService.isUsernameTakenForUpdate(username, id)) {
-            errors.put("username", "Username уже существует");
-        }
-
-        if (name == null || name.isBlank()) {
-            errors.put("name", "Имя обязательно");
-        } else if (!name.matches("^[A-Za-zА-Яа-яЁё]+$")) {
-            errors.put("name", "Имя должно содержать только буквы");
-        }
-
-        if (surname == null || surname.isBlank()) {
-            errors.put("surname", "Фамилия обязательна");
-        } else if (!surname.matches("^[A-Za-zА-Яа-яЁё]+$")) {
-            errors.put("surname", "Фамилия должна содержать только буквы");
-        }
-
-        if (email == null || email.isBlank()) {
-            errors.put("email", "Email обязателен");
-        } else if (!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            errors.put("email", "Некорректный email");
-        }
-
-        if (age == null) {
-            errors.put("age", "Возраст обязателен");
-        } else if (age < 1) {
-            errors.put("age", "Возраст должен быть больше 0");
-        } else if (age > 120) {
-            errors.put("age", "Возраст должен быть меньше 120");
-        }
-
-        if (rolesSelected == null || rolesSelected.isEmpty()) {
-            errors.put("roles", "Выберите хотя бы одну роль");
-        }
-
-        // Если есть ошибки, возвращаем их
-        if (!errors.isEmpty()) {
-            response.put("status", "error");
+        if(bindingResult.hasErrors()) {
+            Map<String,String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .collect(Collectors.toMap(f -> f.getField(), f -> f.getDefaultMessage()));
+            response.put("status","error");
             response.put("errors", errors);
             return response;
         }
 
-        // получаем пользователя из БД
-        User existingUser = userService.getUser(id);
+        // Обновление пользователя
+        User user = userService.getUser(id);
+        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
+        user.setName(dto.getName());
+        user.setSurname(dto.getSurname());
+        user.setAge(dto.getAge());
 
-        existingUser.setUsername(username);
-        existingUser.setName(name);
-        existingUser.setSurname(surname);
-        existingUser.setEmail(email);
-        existingUser.setAge(age);
-
-        // роли
-        Set<Role> roles = roleRepository.findAll().stream()
-                .filter(r -> rolesSelected.contains(r.getName()))
+        Set<Role> roles = roleRepository.findAll()
+                .stream()
+                .filter(r -> dto.getRoles().contains(r.getName()))
                 .collect(Collectors.toSet());
+        user.setRoles(roles);
 
-        existingUser.setRoles(roles);
+        userService.updateUser(id, user);
 
-        userService.updateUser(id, existingUser);
-
-        response.put("status", "success");
+        response.put("status","success");
         return response;
     }
-
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id) {
         userService.deleteUser(id);

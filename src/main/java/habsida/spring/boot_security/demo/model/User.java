@@ -21,6 +21,7 @@ public class User implements UserDetails {
 
     @NotBlank(message = "Username обязателен")
     @Column(nullable = false, unique = true)
+    @Size(min = 3, max = 20, message = "Username должен быть 3-20 символов")
     private String username;
 
     @NotBlank(message = "Password обязателен")
